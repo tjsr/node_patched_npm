@@ -41,3 +41,43 @@ jobs:
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+
+      - name: Tag latest npm variants
+        uses: docker/metadata-action@v5
+        id: latest_image_npm
+        with:
+          context: workflow
+          images: |
+            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm10.5.2
+          tags: |
+            type=raw,value=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm-latest
+
+      - name: Tag latest alpine variants
+        uses: docker/metadata-action@v5
+        id: latest_image_alpine
+        with:
+          context: workflow
+          images: |
+            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine3.19-npm${{ matrix.npm_version }}
+          tags: |
+            type=raw,value=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine-latest-npm${{ matrix.npm_version }}
+
+      - name: Tag latest node variants
+        uses: docker/metadata-action@v5
+        id: latest_image_node
+        with:
+          context: workflow
+          images: |
+            ghcr.io/tjsr/node_patched_npm:20.12.2-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+          tags: |
+            type=raw,value=ghcr.io/tjsr/node_patched_npm:latest-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.latest_image_npm.outputs.tags }}
+            ${{ steps.latest_image_alpine.outputs.tags }}
+            ${{ steps.latest_image_node.outputs.tags }}
