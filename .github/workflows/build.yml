@@ -72,12 +72,12 @@ jobs:
           tags: |
             type=raw,value=ghcr.io/tjsr/node_patched_npm:latest-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
-      - name: Build and push
+      - name: Push tag matrix of latest versions
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ${{ steps.latest_image_npm.outputs.tags }}
-            ${{ steps.latest_image_alpine.outputs.tags }}
+            ${{ steps.latest_image_npm.outputs.tags }} ,
+            ${{ steps.latest_image_alpine.outputs.tags }} ,
             ${{ steps.latest_image_node.outputs.tags }}
