@@ -67,6 +67,7 @@ jobs:
         id: latest_image_node
         with:
           context: workflow
+          sep-tags: ' , '
           images: |
             ghcr.io/tjsr/node_patched_npm:20.12.2-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
           tags: |
