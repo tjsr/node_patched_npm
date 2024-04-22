@@ -13,6 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -36,11 +39,27 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+
+      - name: Tag latest single variant
+        uses: docker/metadata-action@v5
+        id: latest-image
+        with:
+          images: ghcr.io/tjsr/node_patched_npm:20.12.2-alpine3.19-npm10.5.2
+          tags: |
+            type=raw,value=ghcr.io/tjsr/node_patched_npm:latest
+
+      - name: Push latest single variant
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.latest-image.outputs.tags }}
 
       - name: Tag latest npm variants
         uses: docker/metadata-action@v5
