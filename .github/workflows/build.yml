@@ -44,7 +44,7 @@ jobs:
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
-          tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+          tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} , 
 
       - name: Tag latest single variant
         uses: docker/metadata-action@v5
@@ -58,7 +58,7 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.latest-image.outputs.tags }}
+          tags: ${{ steps.latest-image.outputs.tags }} , 
 
       - name: Tag latest npm variants
         uses: docker/metadata-action@v5
@@ -66,9 +66,9 @@ jobs:
         with:
           context: workflow
           images: |
-            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm10.5.2
+            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm10.5.2 , 
           tags: |
-            type=raw,value=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm-latest
+            type=raw,value=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm-latest , 
 
       - name: Tag latest alpine variants
         uses: docker/metadata-action@v5
@@ -76,9 +76,9 @@ jobs:
         with:
           context: workflow
           images: |
-            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine3.19-npm${{ matrix.npm_version }}
+            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine3.19-npm${{ matrix.npm_version }} , 
           tags: |
-            type=raw,value=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine-latest-npm${{ matrix.npm_version }}
+            type=raw,value=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine-latest-npm${{ matrix.npm_version }} , 
 
       - name: Tag latest node variants
         uses: docker/metadata-action@v5
@@ -87,9 +87,9 @@ jobs:
           context: workflow
           sep-tags: ' , '
           images: |
-            ghcr.io/tjsr/node_patched_npm:20.12.2-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            ghcr.io/tjsr/node_patched_npm:20.12.2-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} , 
           tags: |
-            type=raw,value=ghcr.io/tjsr/node_patched_npm:latest-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            type=raw,value=ghcr.io/tjsr/node_patched_npm:latest-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} , 
 
       - name: Push tag matrix of latest versions
         uses: docker/build-push-action@v5
