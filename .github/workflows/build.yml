@@ -45,3 +45,11 @@ jobs:
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+
+      - name: Build and push Docker image with default tags
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ghcr.io/tjsr/node_patched_npm:latest
