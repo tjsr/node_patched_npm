@@ -34,7 +34,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push collection of Docker images
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -51,8 +51,7 @@ jobs:
         id: latest-image
         with:
           images: ghcr.io/tjsr/node_patched_npm:20.12.2-alpine3.19-npm10.5.2
-          tags: |
-            type=raw,value=ghcr.io/tjsr/node_patched_npm:latest
+          tags: type=raw,value=ghcr.io/tjsr/node_patched_npm:latest
 
       - name: Push latest single variant
         uses: docker/build-push-action@v5
