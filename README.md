@@ -14,3 +14,12 @@ The current matrix is:
   + 3.19
 - npm
   + 10.5.2
+
+## Architecture
+
+This image is built for both linux/amd64 and linux/arm64 (Mac/AWS Gravitron)
+
+## Usage
+
+You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.12.2-alpine3.19-npm10.5.2` or even just
+`docker pull ghcr.io/tjsr/node_patched_npm:latest`
