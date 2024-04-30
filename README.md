@@ -14,6 +14,7 @@ The current matrix is:
   + 3.19
 - npm
   + 10.5.2
+  + 10.6.0
 
 ## Architecture
 
@@ -21,5 +22,9 @@ This image is built for both linux/amd64 and linux/arm64 (Mac/AWS Gravitron)
 
 ## Usage
 
-You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.12.2-alpine3.19-npm10.5.2` or even just
+You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.12.2-alpine3.19-npm10.6.0` or even just
 `docker pull ghcr.io/tjsr/node_patched_npm:latest`
+
+## Smaller images
+
+You can use this image as a builder to build an even smaller image that doesn't have npm at all, after building the base image. We can take that even further by using a bundler to further bundle anything included from node_modules in to a single package.  See [Smaller images without yarn/npm](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#smaller-images-without-npmyarn).

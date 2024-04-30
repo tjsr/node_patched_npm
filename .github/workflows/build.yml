@@ -8,7 +8,7 @@ jobs:
       matrix:
         node_version: [18.20.2, 20.12.2]
         alpine_version: [3.18, 3.19]
-        npm_version: [10.5.2]
+        npm_version: [10.5.2, 10.6.0]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,5 +82,5 @@ jobs:
           build-args: |
             NODE_VERSION=20.12.2
             ALPINE_VERSION=3.19
-            NPM_VERSION=10.5.2
+            NPM_VERSION=10.6.0
           tags: ghcr.io/tjsr/node_patched_npm:latest
