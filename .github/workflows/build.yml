@@ -6,7 +6,7 @@ jobs:
   node_matrix:
     strategy:
       matrix:
-        node_version: [18.20.2, 20.12.2, 20.13.1]
+        node_version: [18.20.2, 20.12.2, 20.13.1, 20.14.0]
         alpine_version: [3.18, 3.19]
         npm_version: [10.5.2, 10.6.0, 10.7.0, 10.8.0]
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
       - name: Pull, tag and push the latest image
         if: github.ref == 'refs/heads/main'
         env:
-          NODE_VERSION: 20.13.1
+          NODE_VERSION: 20.14.0
           ALPINE_VERSION: 3.19
           NPM_VERSION: 10.8.0
         run: |
