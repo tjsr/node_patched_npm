@@ -20,7 +20,7 @@ The current matrix is:
   + ~~10.5.2~~
   + ~~10.6.0~~
   + 10.7.0
-  + 10.8.0
+  + 10.8.1
 
 ## Architecture
 
@@ -28,7 +28,7 @@ This image is built for both linux/amd64 and linux/arm64 (Mac/AWS Gravitron)
 
 ## Usage
 
-You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.14.0-alpine3.20-npm10.8.0` or even just
+You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.14.0-alpine3.20-npm10.8.1` or even just
 `docker pull ghcr.io/tjsr/node_patched_npm:latest`
 
 ## Smaller images
