@@ -7,30 +7,34 @@ This will build a matrix of node images with recent in-use node versions.
 The current matrix is:
 
 - node
-  + ~~18.20.2~~
-  + 18.20.3
-  + ~~20.12.2~~
-  + 20.13.1
-  + 20.14.0
+  - ~~18.20.2~~
+  - 18.20.3
+  - ~~20.12.2~~
+  - 20.13.1
+  - 20.14.0
 - alpine
-  + ~~3.18~~
-  + ~~3.19~~
-  + 3.20
+  - ~~3.18~~
+  - ~~3.19~~
+  - 3.20
 - npm
-  + ~~10.5.2~~
-  + ~~10.6.0~~
-  + 10.7.0
-  + 10.8.1
+  - ~~10.5.2~~
+  - ~~10.6.0~~
+  - 10.7.0
+  - 10.8.1
 
 ## Architecture
 
-This image is built for both linux/amd64 and linux/arm64 (Mac/AWS Gravitron)
+This image is built for both linux/amd64 and linux/arm64 (Mac/AWS Graviton)
 
 ## Usage
 
-You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.14.0-alpine3.20-npm10.8.1` or even just
+You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.15.0-alpine3.20-npm10.8.1` or even just
 `docker pull ghcr.io/tjsr/node_patched_npm:latest`
 
 ## Smaller images
 
 You can use this image as a builder to build an even smaller image that doesn't have npm at all, after building the base image. We can take that even further by using a bundler to further bundle anything included from node_modules in to a single package.  See [Smaller images without yarn/npm](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#smaller-images-without-npmyarn).
+
+## Settings
+
+This image now has notifications for funding and updates disabled.
