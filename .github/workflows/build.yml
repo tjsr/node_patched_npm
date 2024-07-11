@@ -38,6 +38,7 @@ jobs:
 
       - name: Build amd64 image without using github action
         run: |
+          mkdir -p /tmp/.buildx-cache/node_patched_npm/amd64
           docker buildx build \
           --platform linux/amd64 \
           --build-arg NODE_VERSION=${{ matrix.node_version }} \
