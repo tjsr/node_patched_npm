@@ -36,10 +36,10 @@ jobs:
       - name: Load tagged image to build on layers.
         run: docker load -i /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar || true
 
-      - name: Build without using github action
+      - name: Build amd64 image without using github action
         run: |
           docker buildx build \
-          --platform linux/amd64,linux/arm64 \
+          --platform linux/amd64 \
           --build-arg NODE_VERSION=${{ matrix.node_version }} \
           --build-arg ALPINE_VERSION=${{ matrix.alpine_version }} \
           --build-arg NPM_VERSION=${{ matrix.npm_version }} \
