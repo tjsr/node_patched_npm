@@ -144,13 +144,8 @@ jobs:
             type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm-latest
             type=raw,${{ env.NODE_VERSION }}-latest
             type=raw,${{ env.NODE_VERSION }}
-
-      - name: Build and push tagged images
-        uses: docker/build-push-action@v6
-        with:
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: true
-          tags: |
-            ${{ steps.meta.outputs.tags }}
+            
+      - name: Push tagged images
+        run:
+          docker push --all-tags ghcr.io/tjsr/node_patched_npm
 
