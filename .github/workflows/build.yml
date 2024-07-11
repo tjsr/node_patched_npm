@@ -100,7 +100,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          images: ghcr.io/tjsr/node_patched_npm
           flavor: |
             latest=false
             prefix=
@@ -120,11 +120,6 @@ jobs:
             type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm-latest
             type=raw,${{ env.NODE_VERSION }}-latest
             type=raw,${{ env.NODE_VERSION }}
-      
-      - name: Mutate metadata output
-        id: mutate-meta
-        run: |
-          echo "::set-output name=tags::$(echo "${{ steps.meta.outputs.tags }}" | sed 's/latest/latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}/g')"
 
       - name: Build and push tagged images
         uses: docker/build-push-action@v6
