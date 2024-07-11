@@ -33,6 +33,9 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Ensure output dir exists
+        run: mkdir -p /tmp/amd64/node_patched_npm
+
       - name: Build and push amd64 docker image.
         uses: docker/build-push-action@v6
         with:
