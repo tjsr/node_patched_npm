@@ -110,17 +110,29 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download artifact
+      - name: Download amd64 artifact
         uses: actions/download-artifact@v4
         with:
           name: amd64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
           path: /tmp/amd64/node_patched_npm
             
+      - name: Download arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: arm64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          path: /tmp/arm64/node_patched_npm
+
       - name: Load tagged amd64 image.
         id: load-amd64
         continue-on-error: true
         run: |
           docker load --input /tmp/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+
+      - name: Load tagged arm64 image.
+        id: load-arm4
+        continue-on-error: true
+        run: |
+          docker load --input /tmp/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
 
       - name: Tag the latest image
         if: steps.branch-names.outputs.current_branch == 'develop/actions' && steps.load-amd64.outputs.exit-code == 0
