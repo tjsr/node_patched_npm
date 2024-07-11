@@ -55,6 +55,7 @@ jobs:
           -o type=docker,dest=/tmp/.docker-cache/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar \
           -t ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} \
           .
+          ls -lah /tmp/.docker-cache/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
   
       # - name: Build and push Docker images for all variants and architectures.
       #   uses: docker/build-push-action@v6
@@ -122,7 +123,11 @@ jobs:
       - name: Load tagged amd64 image to build on layers.
         id: load-amd64
         continue-on-error: true
-        run: docker load -i /tmp/.docker-cache/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+        run: |
+          ls -lah /tmp/.docker-cache/
+          ls -lah /tmp/.docker-cache/amd64/
+          ls -lah /tmp/.docker-cache/amd64/node_patched_npm/
+          docker load -i /tmp/.docker-cache/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
 
       - name: Load tagged arm64 image to build on layers.
         id: load-arm64
