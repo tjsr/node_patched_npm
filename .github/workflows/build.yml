@@ -20,12 +20,6 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-single-buildx
 
-      - name: Cache Docker OCI images
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.docker-cache
-          key: ${{ runner.os }}-single-docker
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -39,44 +33,28 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load tagged image to build on layers.
-        run: docker load -i /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar || true
+      - name: Build and push amd64 docker image.
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          cache-to: type=gha,mode=max
+          cache-from: type=gha
+          build-args: |
+            NODE_VERSION=${{ matrix.node_version }}
+            ALPINE_VERSION=${{ matrix.alpine_version }}
+            NPM_VERSION=${{ matrix.npm_version }}
+          tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+          outputs: |
+            type=docker,dest=/tmp/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+            type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
-      - name: Build amd64 image without using github action
-        run: |
-          mkdir -p /tmp/.docker-cache/amd64/node_patched_npm
-          docker buildx build \
-          --platform linux/amd64 \
-          --build-arg NODE_VERSION=${{ matrix.node_version }} \
-          --build-arg ALPINE_VERSION=${{ matrix.alpine_version }} \
-          --build-arg NPM_VERSION=${{ matrix.npm_version }} \
-          --cache-from type=local,src=/tmp/.buildx-cache \
-          --cache-to type=local,mode=max,dest=/tmp/.buildx-cache \
-          -o type=docker,dest=/tmp/.docker-cache/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar \
-          -t ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} \
-          .
-          ls -lah /tmp/.docker-cache/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
-  
-      # - name: Build and push Docker images for all variants and architectures.
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     context: .
-      #     push: true
-      #     platforms: linux/amd64,linux/arm64
-      #     cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
-      #     build-args: |
-      #       NODE_VERSION=${{ matrix.node_version }}
-      #       ALPINE_VERSION=${{ matrix.alpine_version }}
-      #       NPM_VERSION=${{ matrix.npm_version }}
-      #     tags: |
-      #       ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-  
-#            node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-
-      # - name: Save tagged image to re-load from cache later.
-      #   run: |
-      #     mkdir -p /tmp/.docker-cache/node_patched_npm
-      #     docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+      - name: Upload amd64 image
+        uses: actions/upload-artifact@v4
+        with:
+          name: amd64_node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+          path: /tmp/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
   latest:
     runs-on: ubuntu-latest
@@ -101,12 +79,6 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-single-buildx
 
-      - name: Cache Docker OCI images
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.docker-cache
-          key: ${{ runner.os }}-single-docker
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -120,22 +92,20 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load tagged amd64 image to build on layers.
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: amd64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          path: /tmp/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+            
+      - name: Load tagged amd64 image.
         id: load-amd64
         continue-on-error: true
         run: |
-          ls -lah /tmp/.docker-cache/
-          ls -lah /tmp/.docker-cache/amd64/
-          ls -lah /tmp/.docker-cache/amd64/node_patched_npm/
-          docker load -i /tmp/.docker-cache/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
-
-      - name: Load tagged arm64 image to build on layers.
-        id: load-arm64
-        continue-on-error: true
-        run: docker load -i /tmp/.docker-cache/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+          docker load --input /tmp/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
 
       - name: Tag the latest image
-        if: steps.branch-names.outputs.current_branch == 'develop/actions' && (steps.load-amd64.outputs.exit-code == 0 || steps.load-arm64.outputs.exit-code == 0)
+        if: steps.branch-names.outputs.current_branch == 'develop/actions' && steps.load-amd64.outputs.exit-code == 0
         run: |
           docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
 
@@ -175,8 +145,8 @@ jobs:
       - name: Build and push tagged images
         uses: docker/build-push-action@v6
         with:
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           push: true
           tags: |
             ${{ steps.meta.outputs.tags }}
