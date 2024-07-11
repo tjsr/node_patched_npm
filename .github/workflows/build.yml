@@ -119,5 +119,6 @@ jobs:
         with:
           cache-from: type=gha
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
 
