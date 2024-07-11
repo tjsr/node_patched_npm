@@ -99,7 +99,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: amd64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-          path: /tmp/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+          path: /tmp/amd64/node_patched_npm
             
       - name: Load tagged amd64 image.
         id: load-amd64
