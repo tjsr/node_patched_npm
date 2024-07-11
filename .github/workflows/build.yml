@@ -104,15 +104,15 @@ jobs:
           ALPINE_VERSION: '3.20'
           NPM_VERSION: '10.8.2'
         with:
-          images: ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION}
+          images: ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
           tags: |
             type=raw,ghcr.io/tjsr/node_patched_npm:latest
-            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine${ALPINE_VERSION}-npm${NPM_VERSION}
-            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine-latest-npm${NPM_VERSION}
-            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine-${ALPINE_VERSION}-npm-latest
-            type=raw,ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine-latest-npm${NPM_VERSION}
-            type=raw,ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm-latest
-            type=raw,ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine-latest-npm-latest
+            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine-latest-npm${{ env.NPM_VERSION }}
+            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
+            type=raw,ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
+            type=raw,ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
+            type=raw,ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm-latest
 
       - name: Build and push tagged images
         uses: docker/build-push-action@v6
