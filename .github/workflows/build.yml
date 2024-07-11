@@ -33,6 +33,9 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Load tagged image to build on layers.
+        run: docker load -i /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar || true
+  
       - name: Build and push Docker images for all variants and architectures.
         uses: docker/build-push-action@v6
         with:
@@ -45,6 +48,9 @@ jobs:
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+
+      - name: Save tagged image to re-load from cache later.
+        run: docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
   latest:
     runs-on: ubuntu-latest
@@ -81,6 +87,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load tagged image to build on layers.
+        run: docker load -i /tmp/.buildx-cache/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar || true
 
       - name: Tag the latest image
         if: steps.branch-names.outputs.current_branch == 'develop/actions'
