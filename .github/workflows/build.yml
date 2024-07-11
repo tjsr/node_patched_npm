@@ -103,16 +103,28 @@ jobs:
           images: ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
           flavor: |
             latest=false
-            prefix=ghcr.io/tjsr/node_patched_npm:
+            prefix=
             suffix=
           tags: |
             type=raw,latest
             type=raw,latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
             type=raw,latest-alpine-latest-npm${{ env.NPM_VERSION }}
+            type=raw,latest-npm${{ env.NPM_VERSION }}
             type=raw,latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
+            type=raw,latest-alpine-${{ env.ALPINE_VERSION }}
             type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
+            type=raw,${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
+            type=raw,${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
             type=raw,${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
+            type=raw,${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
             type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm-latest
+            type=raw,${{ env.NODE_VERSION }}-latest
+            type=raw,${{ env.NODE_VERSION }}
+      
+      - name: Mutate metadata output
+        id: mutate-meta
+        run: |
+          echo "::set-output name=tags::$(echo "${{ steps.meta.outputs.tags }}" | sed 's/latest/latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}/g')"
 
       - name: Build and push tagged images
         uses: docker/build-push-action@v6
