@@ -40,8 +40,8 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
@@ -127,7 +127,8 @@ jobs:
       - name: Build and push tagged images
         uses: docker/build-push-action@v6
         with:
-          cache-from: type=gha
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           push: true
           tags: |
             ${{ steps.meta.outputs.tags }}
