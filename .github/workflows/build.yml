@@ -20,6 +20,12 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-single-buildx
 
+      - name: Cache Docker OCI images
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker-cache
+          key: ${{ runner.os }}-single-docker
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -38,14 +44,15 @@ jobs:
 
       - name: Build amd64 image without using github action
         run: |
-          mkdir -p /tmp/.buildx-cache/node_patched_npm/amd64
+          mkdir -p /tmp/.docker-cache/amd64/node_patched_npm
           docker buildx build \
           --platform linux/amd64 \
           --build-arg NODE_VERSION=${{ matrix.node_version }} \
           --build-arg ALPINE_VERSION=${{ matrix.alpine_version }} \
           --build-arg NPM_VERSION=${{ matrix.npm_version }} \
+          --cache-from type=local,src=/tmp/.buildx-cache \
           --cache-to type=local,mode=max,dest=/tmp/.buildx-cache \
-          -o type=docker,dest=/tmp/.buildx-cache/node_patched_npm/amd64/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar \
+          -o type=docker,dest=/tmp/.docker-cache/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar \
           -t ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} \
           .
   
@@ -65,10 +72,10 @@ jobs:
   
 #            node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
-      - name: Save tagged image to re-load from cache later.
-        run: |
-          mkdir -p /tmp/.buildx-cache/node_patched_npm
-          docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+      # - name: Save tagged image to re-load from cache later.
+      #   run: |
+      #     mkdir -p /tmp/.docker-cache/node_patched_npm
+      #     docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
   latest:
     runs-on: ubuntu-latest
@@ -93,6 +100,12 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-single-buildx
 
+      - name: Cache Docker OCI images
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker-cache
+          key: ${{ runner.os }}-single-docker
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -106,14 +119,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load tagged image to build on layers.
-        run: docker load -i /tmp/.buildx-cache/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar || true
+      - name: Load tagged arm64 image to build on layers.
+        run: docker load -i /tmp/.docker-cache/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar || true
 
       - name: Tag the latest image
         if: steps.branch-names.outputs.current_branch == 'develop/actions'
         run: |
-          docker tag node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} node_patched_npm:latest
-          docker tag node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
 
       - name: Pull, tag and push the latest image
         if: github.ref == 'refs/heads/main'
