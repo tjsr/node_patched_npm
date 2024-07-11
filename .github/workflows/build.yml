@@ -18,8 +18,6 @@ jobs:
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-single-buildx
-          restore-keys: |
-            ${{ runner.os }}-single-buildx
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
