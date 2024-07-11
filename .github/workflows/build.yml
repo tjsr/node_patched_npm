@@ -119,11 +119,18 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Load tagged amd64 image to build on layers.
+        id: load-amd64
+        continue-on-error: true
+        run: docker load -i /tmp/.docker-cache/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+
       - name: Load tagged arm64 image to build on layers.
-        run: docker load -i /tmp/.docker-cache/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar || true
+        id: load-arm64
+        continue-on-error: true
+        run: docker load -i /tmp/.docker-cache/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
 
       - name: Tag the latest image
-        if: steps.branch-names.outputs.current_branch == 'develop/actions'
+        if: steps.branch-names.outputs.current_branch == 'develop/actions' && (steps.load-amd64.outputs.exit-code == 0 || steps.load-arm64.outputs.exit-code == 0)
         run: |
           docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
 
