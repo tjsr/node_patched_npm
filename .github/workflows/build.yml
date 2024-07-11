@@ -40,7 +40,6 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
