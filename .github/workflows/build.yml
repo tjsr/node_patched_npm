@@ -47,12 +47,14 @@ jobs:
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
-          tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+          tags: |
+            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
       - name: Save tagged image to re-load from cache later.
         run: |
           mkdir -p /tmp/.buildx-cache/node_patched_npm
-          docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+          docker save node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
   latest:
     runs-on: ubuntu-latest
@@ -96,7 +98,8 @@ jobs:
       - name: Tag the latest image
         if: steps.branch-names.outputs.current_branch == 'develop/actions'
         run: |
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
+          docker tag node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} node_patched_npm:latest
+          docker tag node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
 
       - name: Pull, tag and push the latest image
         if: github.ref == 'refs/heads/main'
