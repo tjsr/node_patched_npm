@@ -35,26 +35,36 @@ jobs:
 
       - name: Load tagged image to build on layers.
         run: docker load -i /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar || true
+
+      - name: Build without using github action
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+          --build-arg NODE_VERSION=${{ matrix.node_version }} \
+          --build-arg ALPINE_VERSION=${{ matrix.alpine_version }} \
+          --build-arg NPM_VERSION=${{ matrix.npm_version }} \
+          -t ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} \
+          .
   
-      - name: Build and push Docker images for all variants and architectures.
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
-          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
-          build-args: |
-            NODE_VERSION=${{ matrix.node_version }}
-            ALPINE_VERSION=${{ matrix.alpine_version }}
-            NPM_VERSION=${{ matrix.npm_version }}
-          tags: |
-            ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-            node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+      # - name: Build and push Docker images for all variants and architectures.
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     push: true
+      #     platforms: linux/amd64,linux/arm64
+      #     cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
+      #     build-args: |
+      #       NODE_VERSION=${{ matrix.node_version }}
+      #       ALPINE_VERSION=${{ matrix.alpine_version }}
+      #       NPM_VERSION=${{ matrix.npm_version }}
+      #     tags: |
+      #       ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+  
+#            node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
       - name: Save tagged image to re-load from cache later.
         run: |
           mkdir -p /tmp/.buildx-cache/node_patched_npm
-          docker save node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+          docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
   latest:
     runs-on: ubuntu-latest
