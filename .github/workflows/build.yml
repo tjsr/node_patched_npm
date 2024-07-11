@@ -40,6 +40,8 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
@@ -50,6 +52,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: node_matrix
     steps:
+      - name: Get branch names.
+        id: branch-names
+        uses: tj-actions/branch-names@v8
+
+      - name: Running on any event.
+        run: |
+          echo "Default branch: ${{ steps.branch-names.outputs.default_branch }}"
+        # Outputs: "Default branch: main"
+
       - uses: actions/checkout@v4
 
       - name: Set up QEMU
@@ -83,3 +94,30 @@ jobs:
           docker pull ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} || true
           docker tag ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} ghcr.io/tjsr/node_patched_npm:latest
           docker push ghcr.io/tjsr/node_patched_npm:latest
+
+      - name: Pull, tag and push the latest image
+        if: steps.branch-names.outputs.current_branch == 'develop/actions'
+        id: meta
+        uses: docker/metadata-action@v5
+        env:
+          NODE_VERSION: '20.15.1'
+          ALPINE_VERSION: '3.20'
+          NPM_VERSION: '10.8.2'
+        with:
+          images: ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION}
+          tags: |
+            type=raw,ghcr.io/tjsr/node_patched_npm:latest
+            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine${ALPINE_VERSION}-npm${NPM_VERSION}
+            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine-latest-npm${NPM_VERSION}
+            type=raw,ghcr.io/tjsr/node_patched_npm:latest-alpine-${ALPINE_VERSION}-npm-latest
+            type=raw,ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine-latest-npm${NPM_VERSION}
+            type=raw,ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm-latest
+            type=raw,ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine-latest-npm-latest
+
+      - name: Build and push tagged images
+        uses: docker/build-push-action@v6
+        with:
+          cache-from: type=gha
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
