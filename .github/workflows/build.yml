@@ -44,7 +44,7 @@ jobs:
           --build-arg ALPINE_VERSION=${{ matrix.alpine_version }} \
           --build-arg NPM_VERSION=${{ matrix.npm_version }} \
           --cache-to type=local,mode=max,dest=/tmp/.buildx-cache \
-          -o type=docker \
+          -o type=docker,dest=/tmp/.buildx-cache/node_patched_npm/amd64/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar \
           -t ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} \
           --output type=oci \
           .
