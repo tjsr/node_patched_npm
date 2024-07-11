@@ -3,7 +3,12 @@ run-name: ${{ github.actor }} Building and pushing node_patched_npm
 on: [push]
 
 jobs:
-  setup:
+  node_matrix:
+    strategy:
+      matrix:
+        node_version: ['18.20.3', '20.13.1', '20.14.0', '20.15.1']
+        alpine_version: ['3.20']
+        npm_version: ['10.7.0', '10.8.2']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,23 +33,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-  node_matrix:
-    needs: setup
-    strategy:
-      matrix:
-        node_version: ['18.20.3', '20.13.1', '20.14.0', '20.15.1']
-        alpine_version: ['3.20']
-        npm_version: ['10.7.0', '10.8.2']
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-single-buildx
-          restore-keys: |
-            ${{ runner.os }}-single-buildx
 
       - name: Build and push Docker images for all variants and architectures.
         uses: docker/build-push-action@v6
@@ -77,14 +65,6 @@ jobs:
           echo "Default branch: ${{ steps.branch-names.outputs.default_branch }}"
         # Outputs: "Default branch: main"
 
-      - uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -92,6 +72,12 @@ jobs:
           key: ${{ runner.os }}-single-buildx
           restore-keys: |
             ${{ runner.os }}-single-buildx
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
