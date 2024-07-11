@@ -50,7 +50,9 @@ jobs:
           tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
       - name: Save tagged image to re-load from cache later.
-        run: docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+        run: |
+          mkdir -p /tmp/.buildx-cache/node_patched_npm
+          docker save ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }} -o /tmp/.buildx-cache/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
   latest:
     runs-on: ubuntu-latest
