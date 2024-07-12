@@ -114,11 +114,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download amd64 artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: amd64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-          path: /tmp/amd64/node_patched_npm
+      # - name: Download amd64 artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: amd64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+      #     path: /tmp/amd64/node_patched_npm
             
       - name: Download OCI multi-platform artifact
         uses: actions/download-artifact@v4
