@@ -128,10 +128,9 @@ jobs:
 
       - name: Load tagged OCI multi-platform image.
         id: load-oci
-        continue-on-error: true
         run: |
           ls -lah /tmp/node_patched_npm
-          docker load --input /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+          docker import /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
 
       # - name: Load tagged arm64 image.
       #   id: load-arm4
