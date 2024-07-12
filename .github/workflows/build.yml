@@ -49,7 +49,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: github.ref == 'refs/heads/main' || steps.matrix-image.outputs.isLatest == 'true'
+          push: ${{ github.ref == 'refs/heads/main' || steps.matrix-image.outputs.isLatest == 'true' }}
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
