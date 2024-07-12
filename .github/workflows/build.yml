@@ -42,8 +42,6 @@ jobs:
           context: .
           push: ${{ github.ref == 'refs/heads/main' || steps.branch-names.outputs.current_branch == 'develop/actions-nocache' }}
           platforms: linux/amd64,linux/arm64
-          cache-to: type=gha,mode=max
-          cache-from: type=gha
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
