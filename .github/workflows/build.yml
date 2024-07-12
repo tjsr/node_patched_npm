@@ -14,8 +14,14 @@ jobs:
         alpine_version: ['3.20']
         npm_version: ['10.7.0', '10.8.2']
     runs-on: ubuntu-latest
+    # variables:
+    #   IMG_MATRIX_VER=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get branch names.
+        id: branch-names
+        uses: tj-actions/branch-names@v8
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -34,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' || steps.branch-names.outputs.current_branch == 'develop/actions-nocache' }}
           platforms: linux/amd64,linux/arm64
           cache-to: type=gha,mode=max
           cache-from: type=gha
@@ -48,7 +54,7 @@ jobs:
             type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
       - name: Upload OCI multi-platform image
-        if: ${{ matrix.node_version }} == ${{ env.NODE_VERSION }} && ${{ matrix.alpine_version }} == ${{ env.ALPINE_VERSION }} && ${{ matrix.npm_version }} == ${{ env.NPM_VERSION }}
+        if: github.ref == 'refs/heads/main' && ${{ matrix.node_version }} == ${{ env.NODE_VERSION }} && ${{ matrix.alpine_version }} == ${{ env.ALPINE_VERSION }} && ${{ matrix.npm_version }} == ${{ env.NPM_VERSION }}
         uses: actions/upload-artifact@v4
         with:
           name: node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
@@ -62,11 +68,6 @@ jobs:
       - name: Get branch names.
         id: branch-names
         uses: tj-actions/branch-names@v8
-
-      - name: Running on any event.
-        run: |
-          echo "Default branch: ${{ steps.branch-names.outputs.default_branch }}"
-        # Outputs: "Default branch: main"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -94,6 +95,7 @@ jobs:
 
       - name: Tag the latest image with all the variants we want
         run: |
+          BASECMD="docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }}"
           docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm
           docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest
           docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
