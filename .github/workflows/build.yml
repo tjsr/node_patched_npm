@@ -130,7 +130,7 @@ jobs:
         id: load-oci
         run: |
           ls -lah /tmp/node_patched_npm
-          docker import /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar ghcr.io/tjsr/node_patched_npm
+          docker import /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
 
       # - name: Load tagged arm64 image.
       #   id: load-arm4
@@ -141,7 +141,7 @@ jobs:
       - name: Tag the latest image
         if: steps.branch-names.outputs.current_branch == 'develop/actions' && steps.load-oci.outputs.exit-code == 0
         run: |
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm
 
       - name: Pull, tag and push the latest image
         if: github.ref == 'refs/heads/main'
