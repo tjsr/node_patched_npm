@@ -17,6 +17,14 @@ jobs:
     # variables:
     #   IMG_MATRIX_VER=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
     steps:
+      - id: matrix-image
+        env:
+          MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
+          IS_LATEST: env.LATEST_IMAGE_TAG == "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
+        run: |
+          echo "tag=${{ env.MATRIX_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "isLatest=${{ env.IS_LATEST }} " >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
 
       - name: Get branch names.
@@ -40,23 +48,23 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' || steps.branch-names.outputs.current_branch == 'develop/actions-nocache' }}
+          push: ${{ github.ref == 'refs/heads/main' || steps.matrix-image.outputs.isLatest }}
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
-          tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+          tags: ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
           outputs: |
-            type=oci,dest=/tmp/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
-            type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            type=oci,dest=/tmp/${{ steps.matrix-image.outputs.tag }}.tar
+            type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
 
       - name: Upload OCI multi-platform image
-        if: github.ref == 'refs/heads/main' && ${{ matrix.node_version }} == ${{ env.NODE_VERSION }} && ${{ matrix.alpine_version }} == ${{ env.ALPINE_VERSION }} && ${{ matrix.npm_version }} == ${{ env.NPM_VERSION }}
+        if: github.ref == 'refs/heads/main' && ${{ steps.matrix-image.outputs.isLatest }}
         uses: actions/upload-artifact@v4
         with:
-          name: node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-          path: /tmp/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar  
+          name: node_patched_npm_${{ steps.matrix-image.outputs.tag }}
+          path: /tmp/${{ steps.matrix-image.outputs.tag }}.tar
 
   latest:
     runs-on: ubuntu-latest
