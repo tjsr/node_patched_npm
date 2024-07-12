@@ -5,7 +5,7 @@ env:
   NODE_VERSION: '20.15.1'
   ALPINE_VERSION: '3.20'
   NPM_VERSION: '10.8.2'
-
+  LATEST_IMAGE_TAG: "$NODE_VERSION-alpine$ALPINE_VERSION-npm$NPM_VERSION"
 jobs:
   node_matrix:
     strategy:
@@ -113,35 +113,37 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Download amd64 artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: amd64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-      #     path: /tmp/amd64/node_patched_npm
             
       - name: Download OCI multi-platform artifact
         uses: actions/download-artifact@v4
         with:
-          name: node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          name: node_patched_npm_${{ env.LATEST_IMAGE_TAG }}
           path: /tmp/node_patched_npm
 
       - name: Load tagged OCI multi-platform image.
         id: load-oci
         run: |
           ls -lah /tmp/node_patched_npm
-          docker import /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          docker import /tmp/node_patched_npm/${{ env.LATEST_IMAGE_TAG }}.tar ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }}
 
-      # - name: Load tagged arm64 image.
-      #   id: load-arm4
-      #   continue-on-error: true
-      #   run: |
-      #     docker load --input /tmp/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
-
-      - name: Tag the latest image
+      - name: Tag the latest image with all the variants we want
         if: steps.branch-names.outputs.current_branch == 'develop/actions' && steps.load-oci.outputs.exit-code == 0
         run: |
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-latest-npm${{ env.NPM_VERSION }}
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-npm${{ env.NPM_VERSION }}
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-${{ env.ALPINE_VERSION }}
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm-latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-latest
+          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}
 
       - name: Pull, tag and push the latest image
         if: github.ref == 'refs/heads/main'
@@ -150,31 +152,31 @@ jobs:
           docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
           docker push ghcr.io/tjsr/node_patched_npm:latest
 
-      - name: Pull, tag and push the latest image
-        if: steps.branch-names.outputs.current_branch == 'develop/actions'
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/tjsr/node_patched_npm
-          flavor: |
-            latest=false
-            prefix=
-            suffix=
-          tags: |
-            type=raw,latest
-            type=raw,latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-            type=raw,latest-alpine-latest-npm${{ env.NPM_VERSION }}
-            type=raw,latest-npm${{ env.NPM_VERSION }}
-            type=raw,latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
-            type=raw,latest-alpine-${{ env.ALPINE_VERSION }}
-            type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
-            type=raw,${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
-            type=raw,${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
-            type=raw,${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
-            type=raw,${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
-            type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm-latest
-            type=raw,${{ env.NODE_VERSION }}-latest
-            type=raw,${{ env.NODE_VERSION }}
+      # - name: Pull, tag and push the latest image
+      #   if: steps.branch-names.outputs.current_branch == 'develop/actions'
+      #   id: meta
+      #   uses: docker/metadata-action@v5
+      #   with:
+      #     images: ghcr.io/tjsr/node_patched_npm
+      #     flavor: |
+      #       latest=false
+      #       prefix=
+      #       suffix=
+      #     tags: |
+      #       type=raw,latest
+      #       type=raw,latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+      #       type=raw,latest-alpine-latest-npm${{ env.NPM_VERSION }}
+      #       type=raw,latest-npm${{ env.NPM_VERSION }}
+      #       type=raw,latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
+      #       type=raw,latest-alpine-${{ env.ALPINE_VERSION }}
+      #       type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
+      #       type=raw,${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
+      #       type=raw,${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
+      #       type=raw,${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
+      #       type=raw,${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
+      #       type=raw,${{ env.NODE_VERSION }}-alpine-latest-npm-latest
+      #       type=raw,${{ env.NODE_VERSION }}-latest
+      #       type=raw,${{ env.NODE_VERSION }}
             
       - name: Push tagged images
         run:
