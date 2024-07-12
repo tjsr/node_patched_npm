@@ -5,7 +5,7 @@ env:
   NODE_VERSION: '20.15.1'
   ALPINE_VERSION: '3.20'
   NPM_VERSION: '10.8.2'
-  LATEST_IMAGE_TAG: "$NODE_VERSION-alpine$ALPINE_VERSION-npm$NPM_VERSION"
+  LATEST_IMAGE_TAG: '20.15.1-alpine3.20-npm10.8.2'
 jobs:
   node_matrix:
     strategy:
