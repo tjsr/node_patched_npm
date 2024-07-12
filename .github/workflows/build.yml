@@ -130,7 +130,7 @@ jobs:
         id: load-oci
         run: |
           ls -lah /tmp/node_patched_npm
-          docker import /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+          docker import /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
 
       # - name: Load tagged arm64 image.
       #   id: load-arm4
