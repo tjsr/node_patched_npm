@@ -20,10 +20,11 @@ jobs:
       - id: matrix-image
         env:
           MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
-          IS_LATEST: env.LATEST_IMAGE_TAG == "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
+
         run: |
+          IS_LATEST=$([[ "$LATEST_IMAGE_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
           echo "tag=${{ env.MATRIX_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "isLatest=${{ env.IS_LATEST }} " >> "$GITHUB_OUTPUT"
+          echo "isLatest=$IS_LATEST" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
 
@@ -48,7 +49,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' || steps.matrix-image.outputs.isLatest }}
+          push: github.ref == 'refs/heads/main' || steps.matrix-image.outputs.isLatest == 'true'
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
