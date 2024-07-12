@@ -13,7 +13,8 @@ jobs:
         # '18.20.3', '20.13.1', '20.14.0'
         node_version: ['20.15.1']
         alpine_version: ['3.20']
-        npm_version: ['10.7.0', '10.8.2']
+        # '10.7.0', 
+        npm_version: ['10.8.2']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +51,7 @@ jobs:
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
           outputs: |
-            type=docker,dest=/tmp/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+            type=oci,dest=/tmp/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
             type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
       - name: Upload amd64 image
