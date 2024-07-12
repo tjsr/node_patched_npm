@@ -36,12 +36,12 @@ jobs:
           mkdir -p /tmp/amd64/node_patched_npm
           mkdir -p /tmp/arm64/node_patched_npm
 
-      - name: Build and push amd64 docker image.
+      - name: Build and push all docker images.
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           cache-to: type=gha,mode=max
           cache-from: type=gha
           build-args: |
@@ -60,22 +60,24 @@ jobs:
           name: amd64_node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
           path: /tmp/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
-      - name: Build and push arm64 docker image.
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          platforms: linux/arm64
-          cache-to: type=gha,mode=max
-          cache-from: type=gha
-          build-args: |
-            NODE_VERSION=${{ matrix.node_version }}
-            ALPINE_VERSION=${{ matrix.alpine_version }}
-            NPM_VERSION=${{ matrix.npm_version }}
-          tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-          outputs: |
-            type=docker,dest=/tmp/arm64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
-            type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+      # - name: Build and push arm64 docker image.
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     push: true
+      #     platforms: |
+      #       linux/arm64
+
+      #     cache-to: type=gha,mode=max
+      #     cache-from: type=gha
+      #     build-args: |
+      #       NODE_VERSION=${{ matrix.node_version }}
+      #       ALPINE_VERSION=${{ matrix.alpine_version }}
+      #       NPM_VERSION=${{ matrix.npm_version }}
+      #     tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+      #     outputs: |
+      #       type=docker,dest=/tmp/arm64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+      #       type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
   
       - name: Upload arm64 image
         if: ${{ matrix.node_version }} == ${{ env.NODE_VERSION }} && ${{ matrix.alpine_version }} == ${{ env.ALPINE_VERSION }} && ${{ matrix.npm_version }} == ${{ env.NPM_VERSION }}
