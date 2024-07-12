@@ -1,6 +1,6 @@
 name: Release
 run-name: ${{ github.actor }} Building and pushing node_patched_npm
-on: [push]
+on: [push, workflow_dispatch]
 env:
   NODE_VERSION: '20.15.1'
   ALPINE_VERSION: '3.20'
@@ -51,7 +51,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' && steps.artifact-exists.outputs.exists == 'false' }}
+          push: ${{ github.ref == 'refs/heads/main' && (steps.artifact-exists.outputs.exists == 'false' || github.event_name == 'workflow_dispatch') }}
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
@@ -63,7 +63,7 @@ jobs:
             type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
 
       - name: Upload OCI multi-platform image
-        if: ${{ github.ref == 'refs/heads/main' && steps.matrix-image.outputs.isLatest == 'true' }}
+        if: ${{ github.ref == 'refs/heads/main' && (steps.matrix-image.outputs.isLatest == 'true' || github.event_name == 'workflow_dispatch') }}
         uses: actions/upload-artifact@v4
         with:
           name: node_patched_npm_${{ steps.matrix-image.outputs.tag }}
