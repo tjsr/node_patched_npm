@@ -36,6 +36,7 @@ jobs:
         run: |
           mkdir -p /tmp/amd64/node_patched_npm
           mkdir -p /tmp/arm64/node_patched_npm
+          mkdir -p /tmp/node_patched_npm
 
       - name: Build and push all docker images.
         uses: docker/build-push-action@v6
@@ -51,15 +52,15 @@ jobs:
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
           outputs: |
-            type=oci,dest=/tmp/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+            type=oci,dest=/tmp/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
             type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
 
-      - name: Upload amd64 image
+      - name: Upload OCI multi-platform image
         if: ${{ matrix.node_version }} == ${{ env.NODE_VERSION }} && ${{ matrix.alpine_version }} == ${{ env.ALPINE_VERSION }} && ${{ matrix.npm_version }} == ${{ env.NPM_VERSION }}
         uses: actions/upload-artifact@v4
         with:
-          name: amd64_node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-          path: /tmp/amd64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+          name: node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+          path: /tmp/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
 
       # - name: Build and push arm64 docker image.
       #   uses: docker/build-push-action@v6
@@ -80,12 +81,12 @@ jobs:
       #       type=docker,dest=/tmp/arm64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
       #       type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
   
-      - name: Upload arm64 image
-        if: ${{ matrix.node_version }} == ${{ env.NODE_VERSION }} && ${{ matrix.alpine_version }} == ${{ env.ALPINE_VERSION }} && ${{ matrix.npm_version }} == ${{ env.NPM_VERSION }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: arm64_node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-          path: /tmp/arm64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
+      # - name: Upload arm64 image
+      #   if: ${{ matrix.node_version }} == ${{ env.NODE_VERSION }} && ${{ matrix.alpine_version }} == ${{ env.ALPINE_VERSION }} && ${{ matrix.npm_version }} == ${{ env.NPM_VERSION }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: arm64_node_patched_npm_${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+      #     path: /tmp/arm64/node_patched_npm/${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}.tar
     
   latest:
     runs-on: ubuntu-latest
@@ -119,26 +120,26 @@ jobs:
           name: amd64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
           path: /tmp/amd64/node_patched_npm
             
-      - name: Download arm64 artifact
+      - name: Download OCI multi-platform artifact
         uses: actions/download-artifact@v4
         with:
-          name: arm64_node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-          path: /tmp/arm64/node_patched_npm
+          name: node_patched_npm_${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          path: /tmp/node_patched_npm
 
-      - name: Load tagged amd64 image.
-        id: load-amd64
+      - name: Load tagged OCI multi-platform image.
+        id: load-oci
         continue-on-error: true
         run: |
-          docker load --input /tmp/amd64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+          docker load --input /tmp/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
 
-      - name: Load tagged arm64 image.
-        id: load-arm4
-        continue-on-error: true
-        run: |
-          docker load --input /tmp/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
+      # - name: Load tagged arm64 image.
+      #   id: load-arm4
+      #   continue-on-error: true
+      #   run: |
+      #     docker load --input /tmp/arm64/node_patched_npm/${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}.tar
 
       - name: Tag the latest image
-        if: steps.branch-names.outputs.current_branch == 'develop/actions' && steps.load-amd64.outputs.exit-code == 0
+        if: steps.branch-names.outputs.current_branch == 'develop/actions' && steps.load-oci.outputs.exit-code == 0
         run: |
           docker tag ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} ghcr.io/tjsr/node_patched_npm:latest
 
