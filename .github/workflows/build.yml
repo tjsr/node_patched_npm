@@ -19,9 +19,9 @@ jobs:
       - id: matrix-image
         env:
           MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
-          IS_LATEST_NODE: matrix.node_version == env.NODE_VERSION
-          IS_LATEST_NPM: matrix.npm_version == env.NPM_VERSION
-          IS_LATEST_ALPINE: matrix.alpine_version == env.ALPINE_VERSION
+          IS_LATEST_NODE: "${{ matrix.node_version == env.NODE_VERSION }}"
+          IS_LATEST_NPM: "${{ matrix.npm_version == env.NPM_VERSION }}"
+          IS_LATEST_ALPINE: "${{ matrix.alpine_version == env.ALPINE_VERSION }}"
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
           echo "isLatest=$IS_LATEST" | tee "$GITHUB_OUTPUT"
