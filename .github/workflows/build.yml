@@ -58,31 +58,52 @@ jobs:
           echo "Fired by workflow: ${{ github.event_name == 'workflow_dispatch' }}"
           echo "push=true" >> "$GITHUB_OUTPUT"
 
+      - name: Build list of latest tags
+        if: steps.matrix-image.outputs.isLatest == 'true'
+        id: latest-tags
+        run: |
+          IMAGE="ghcr.io/tjsr/node_patched_npm"
+          TAGS="latest \
+            $IMAGE:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} \
+            $IMAGE:latest-alpine-latest-npm${{ env.NPM_VERSION }} \
+            $IMAGE:latest-npm${{ env.NPM_VERSION }} \
+            $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest \
+            $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }} \
+            $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }} \
+            $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest \
+            $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }} \
+            $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest \
+            $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }} \
+            $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm-latest \
+            $IMAGE:${{ env.NODE_VERSION }}-latest \
+            $IMAGE:${{ env.NODE_VERSION }}"
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+
       - name: Build and push all docker images.
         uses: docker/build-push-action@v6
         with:
           context: .
           # push: ${{ steps.push-image.outputs.push == 'true' }}
+          push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
-          tags: ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
-          outputs: |
-            type=oci,dest=${{ steps.matrix-image.outputs.tarfile }}
-            type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
+          tags: |
+            ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
+            ${{ steps.latest-tags.outputs.tags }}
 
-      - name: Upload OCI multi-platform image
-        if: ${{ (github.ref == 'refs/heads/main' && steps.matrix-image.outputs.isLatest == 'true') || github.event_name == 'workflow_dispatch' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: node_patched_npm_${{ steps.matrix-image.outputs.tag }}
-          path: ${{ steps.matrix-image.outputs.tarfile }}
+      # - name: Upload OCI multi-platform image
+      #   if: ${{ (github.ref == 'refs/heads/main' && steps.matrix-image.outputs.isLatest == 'true') || github.event_name == 'workflow_dispatch' }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: node_patched_npm_${{ steps.matrix-image.outputs.tag }}
+      #     path: ${{ steps.matrix-image.outputs.tarfile }}
 
   latest:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: true == false && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
     needs: node_matrix
     steps:
       - name: Get branch names.
