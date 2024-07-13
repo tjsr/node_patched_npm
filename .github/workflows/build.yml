@@ -19,10 +19,15 @@ jobs:
       - id: matrix-image
         env:
           MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
+          IS_LATEST_NODE: matrix.node_version == env.NODE_VERSION
+          IS_LATEST_NPM: matrix.npm_version == env.NPM_VERSION
+          IS_LATEST_ALPINE: matrix.alpine_version == env.ALPINE_VERSION
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
-          echo "isLatest=$IS_LATEST"
-          echo "isLatest=$IS_LATEST" >> "$GITHUB_OUTPUT"
+          echo "isLatest=$IS_LATEST" | teee "$GITHUB_OUTPUT"
+          echo "isLatestNode=$IS_LATEST_NODE" | tee "$GITHUB_OUTPUT"
+          echo "isLatestAlpine=$IS_LATEST_ALPINE" | tee "$GITHUB_OUTPUT"
+          echo "isLatestNpm=$IS_LATEST_NPM" | tee "$GITHUB_OUTPUT"
 
       - uses: LIT-Protocol/artifact-exists-action@v0
         id: artifact-exists
@@ -65,12 +70,12 @@ jobs:
             ghcr.io/tjsr/node_patched_npm
           tags: |
             type=raw,value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=npm${{ matrix.npm_version }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine-${{ matrix.alpine_version }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ matrix.node_version }}-npm${{ matrix.npm_version }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=latest
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=alpine-${{ matrix.alpine_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=${{ matrix.node_version }}-npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}
             type=sha
             type=sha,format=long
 
