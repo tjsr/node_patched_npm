@@ -62,7 +62,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ steps.push-image.outputs.push == 'true' }}
+          # push: ${{ steps.push-image.outputs.push == 'true' }}
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
