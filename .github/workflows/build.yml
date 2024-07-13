@@ -63,21 +63,19 @@ jobs:
         id: latest-tags
         run: |
           IMAGE="ghcr.io/tjsr/node_patched_npm"
-          TAGS="latest \
-            $IMAGE:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }} \
-            $IMAGE:latest-alpine-latest-npm${{ env.NPM_VERSION }} \
-            $IMAGE:latest-npm${{ env.NPM_VERSION }} \
-            $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest \
-            $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }} \
-            $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }} \
-            $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest \
-            $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }} \
-            $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest \
-            $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }} \
-            $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm-latest \
-            $IMAGE:${{ env.NODE_VERSION }}-latest \
-            $IMAGE:${{ env.NODE_VERSION }}"
-          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:latest-alpine-latest-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:latest-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm-latest" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-latest" >> "$GITHUB_OUTPUT"
+          echo "tags=$IMAGE:${{ env.NODE_VERSION }}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push all docker images.
         uses: docker/build-push-action@v6
