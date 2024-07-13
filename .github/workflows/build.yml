@@ -24,7 +24,7 @@ jobs:
           IS_LATEST_ALPINE: matrix.alpine_version == env.ALPINE_VERSION
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
-          echo "isLatest=$IS_LATEST" | teee "$GITHUB_OUTPUT"
+          echo "isLatest=$IS_LATEST" | tee "$GITHUB_OUTPUT"
           echo "isLatestNode=$IS_LATEST_NODE" | tee "$GITHUB_OUTPUT"
           echo "isLatestAlpine=$IS_LATEST_ALPINE" | tee "$GITHUB_OUTPUT"
           echo "isLatestNpm=$IS_LATEST_NPM" | tee "$GITHUB_OUTPUT"
