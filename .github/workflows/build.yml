@@ -5,7 +5,8 @@ env:
   NODE_VERSION: '20.15.1'
   ALPINE_VERSION: '3.20'
   NPM_VERSION: '10.8.2'
-  LATEST_IMAGE_TAG: '20.15.1-alpine3.20-npm10.8.2'
+  LATEST_TAG: '20.15.1-alpine3.20-npm10.8.2'
+  LATEST_IMAGE_TAG: 'node_patched_npm:20.15.1-alpine3.20-npm10.8.2'
 jobs:
   node_matrix:
     strategy:
@@ -19,14 +20,15 @@ jobs:
         env:
           MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
         run: |
-          IS_LATEST=$([[ "$LATEST_IMAGE_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
+          IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
           echo "tag=${{ env.MATRIX_VERSION }}" >> "$GITHUB_OUTPUT"
           echo "isLatest=$IS_LATEST" >> "$GITHUB_OUTPUT"
+          echo "tarfile=/tmp/${{ env.MATRIX_VERSION }}.tar" >> "$GITHUB_OUTPUT"
 
       - uses: LIT-Protocol/artifact-exists-action@v0
         id: artifact-exists
         with:
-          name: "node_patched_npm_${{ env.LATEST_IMAGE_TAG }}"
+          name: "node_patched_npm_${{ env.LATEST_TAG }}"
 
       - uses: actions/checkout@v4
 
@@ -68,7 +70,7 @@ jobs:
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
           outputs: |
-            type=oci,dest=/tmp/${{ steps.matrix-image.outputs.tag }}.tar
+            type=oci,dest=${{ steps.matrix-image.outputs.tarfile }}
             type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
 
       - name: Upload OCI multi-platform image
@@ -76,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node_patched_npm_${{ steps.matrix-image.outputs.tag }}
-          path: /tmp/${{ steps.matrix-image.outputs.tag }}.tar
+          path: ${{ steps.matrix-image.outputs.tarfile }}
 
   latest:
     runs-on: ubuntu-latest
@@ -103,32 +105,36 @@ jobs:
       - name: Download OCI multi-platform artifact
         uses: actions/download-artifact@v4
         with:
-          name: node_patched_npm_${{ env.LATEST_IMAGE_TAG }}
+          name: node_patched_npm_${{ env.LATEST_TAG }}
           path: /tmp/node_patched_npm
+
+      - name: Debug - output the contents of the downloaded artifact
+        run: ls -laR /tmp/node_patched_npm
 
       - name: Load tagged OCI multi-platform image.
         id: load-oci
         run: |
-          docker import /tmp/node_patched_npm/${{ env.LATEST_IMAGE_TAG }}.tar ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }}
+          docker import /tmp/node_patched_npm/${{ env.LATEST_TAG }}.tar ${{ env.LATEST_IMAGE_TAG }}
 
       - name: Tag the latest image with all the variants we want
         run: |
-          BASECMD="docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }}"
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-latest-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-${{ env.ALPINE_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}
+          BASECMD="docker tag ${{ env.LATEST_IMAGE_TAG }}"
+          IMAGE="ghcr.io/tjsr/node_patched_npm"
+          $BASECMD $IMAGE
+          $BASECMD $IMAGE:latest
+          $BASECMD $IMAGE:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+          $BASECMD $IMAGE:latest-alpine-latest-npm${{ env.NPM_VERSION }}
+          $BASECMD $IMAGE:latest-npm${{ env.NPM_VERSION }}
+          $BASECMD $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
+          $BASECMD $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm-latest
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-latest
+          $BASECMD $IMAGE:${{ env.NODE_VERSION }}
 
       - name: Push tagged images
         run:
