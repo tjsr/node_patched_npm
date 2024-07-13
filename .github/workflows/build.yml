@@ -5,28 +5,34 @@ env:
   NODE_VERSION: '20.15.1'
   ALPINE_VERSION: '3.20'
   NPM_VERSION: '10.8.2'
-  LATEST_IMAGE_TAG: '20.15.1-alpine3.20-npm10.8.2'
+  LATEST_TAG: '20.15.1-alpine3.20-npm10.8.2'
+  LATEST_IMAGE_TAG: 'node_patched_npm:20.15.1-alpine3.20-npm10.8.2'
 jobs:
   node_matrix:
     strategy:
       matrix:
-        node_version: ['18.20.3', '20.13.1', '20.14.0', '20.15.1']
+        node_version: ['18.20.3', '20.15.1']
         alpine_version: ['3.20']
-        npm_version: ['10.7.0', '10.8.2']
+        npm_version: ['10.8.2']
     runs-on: ubuntu-latest
     steps:
       - id: matrix-image
         env:
           MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
+          IS_LATEST_NODE: "${{ matrix.node_version == env.NODE_VERSION }}"
+          IS_LATEST_NPM: "${{ matrix.npm_version == env.NPM_VERSION }}"
+          IS_LATEST_ALPINE: "${{ matrix.alpine_version == env.ALPINE_VERSION }}"
         run: |
-          IS_LATEST=$([[ "$LATEST_IMAGE_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
-          echo "tag=${{ env.MATRIX_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "isLatest=$IS_LATEST" >> "$GITHUB_OUTPUT"
+          IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
+          echo "isLatest=$IS_LATEST" | tee "$GITHUB_OUTPUT"
+          echo "isLatestNode=$IS_LATEST_NODE" | tee "$GITHUB_OUTPUT"
+          echo "isLatestAlpine=$IS_LATEST_ALPINE" | tee "$GITHUB_OUTPUT"
+          echo "isLatestNpm=$IS_LATEST_NPM" | tee "$GITHUB_OUTPUT"
 
       - uses: LIT-Protocol/artifact-exists-action@v0
         id: artifact-exists
         with:
-          name: "node_patched_npm_${{ env.LATEST_IMAGE_TAG }}"
+          name: "node_patched_npm_${{ env.MATRIX_VERSION }}"
 
       - uses: actions/checkout@v4
 
@@ -47,81 +53,40 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Confirming that image will be pushed.
+        id: push-image
+        if: ${{ (github.ref == 'refs/heads/main' && steps.artifact-exists.outputs.exists == 'false') || github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "Pushing image."
+          echo "Artifact already exists: ${{ steps.artifact-exists.outputs.exists }}"
+          echo "Fired by workflow: ${{ github.event_name == 'workflow_dispatch' }}"
+          echo "push=true" >> "$GITHUB_OUTPUT"
+
+      - name: Latest tags meta
+        id: image-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/tjsr/node_patched_npm
+          tags: |
+            type=raw,value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=latest
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=alpine-${{ matrix.alpine_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=${{ matrix.node_version }}-npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}
+            type=sha
+            type=sha,format=long
+
       - name: Build and push all docker images.
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' && (steps.artifact-exists.outputs.exists == 'false' || github.event_name == 'workflow_dispatch') }}
+          push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
-          tags: ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
-          outputs: |
-            type=oci,dest=/tmp/${{ steps.matrix-image.outputs.tag }}.tar
-            type=registry,ref=ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
-
-      - name: Upload OCI multi-platform image
-        if: ${{ github.ref == 'refs/heads/main' && (steps.matrix-image.outputs.isLatest == 'true' || github.event_name == 'workflow_dispatch') }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: node_patched_npm_${{ steps.matrix-image.outputs.tag }}
-          path: /tmp/${{ steps.matrix-image.outputs.tag }}.tar
-
-  latest:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: node_matrix
-    steps:
-      - name: Get branch names.
-        id: branch-names
-        uses: tj-actions/branch-names@v8
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-            
-      - name: Download OCI multi-platform artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: node_patched_npm_${{ env.LATEST_IMAGE_TAG }}
-          path: /tmp/node_patched_npm
-
-      - name: Load tagged OCI multi-platform image.
-        id: load-oci
-        run: |
-          docker import /tmp/node_patched_npm/${{ env.LATEST_IMAGE_TAG }}.tar ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }}
-
-      - name: Tag the latest image with all the variants we want
-        run: |
-          BASECMD="docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }}"
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-latest-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:latest-alpine-${{ env.ALPINE_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-alpine-latest-npm-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}-latest
-          docker tag ghcr.io/tjsr/node_patched_npm:${{ env.LATEST_IMAGE_TAG }} ghcr.io/tjsr/node_patched_npm:${{ env.NODE_VERSION }}
-
-      - name: Push tagged images
-        run:
-          docker push --all-tags ghcr.io/tjsr/node_patched_npm
-
+          tags: ${{ steps.image-meta.outputs.tags }}
