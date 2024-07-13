@@ -24,15 +24,14 @@ jobs:
           IS_LATEST_ALPINE: "${{ matrix.alpine_version == env.ALPINE_VERSION }}"
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
-          echo "isLatest=$IS_LATEST" | tee "$GITHUB_OUTPUT"
-          echo "isLatestNode=$IS_LATEST_NODE" | tee "$GITHUB_OUTPUT"
-          echo "isLatestAlpine=$IS_LATEST_ALPINE" | tee "$GITHUB_OUTPUT"
-          echo "isLatestNpm=$IS_LATEST_NPM" | tee "$GITHUB_OUTPUT"
+          TMP_FILE=/tmp/values.${GITHUB_RUN_ID}.txt
+          echo "isLatest=$IS_LATEST" >> "$TMP_FILE"
+          echo "isLatestNode=$IS_LATEST_NODE" >> "$TMP_FILE"
+          echo "isLatestAlpine=$IS_LATEST_ALPINE" >> "$TMP_FILE"
+          echo "isLatestNpm=$IS_LATEST_NPM" >> "$TMP_FILE"
 
-      - uses: LIT-Protocol/artifact-exists-action@v0
-        id: artifact-exists
-        with:
-          name: "node_patched_npm_${{ env.MATRIX_VERSION }}"
+          cat $TMP_FILE
+          cat $TMP_FILE >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
 
@@ -55,11 +54,11 @@ jobs:
 
       - name: Confirming that image will be pushed.
         id: push-image
-        if: ${{ (github.ref == 'refs/heads/main' && steps.artifact-exists.outputs.exists == 'false') || github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || vars.PUSH_BRANCH == steps.branch-names.outputs.current_branch }}
         run: |
           echo "Pushing image."
-          echo "Artifact already exists: ${{ steps.artifact-exists.outputs.exists }}"
           echo "Fired by workflow: ${{ github.event_name == 'workflow_dispatch' }}"
+          echo "isPushBranch=${{ vars.PUSH_BRANCH == steps.branch-names.outputs.current_branch }}" >> "$GITHUB_OUTPUT"
           echo "push=true" >> "$GITHUB_OUTPUT"
 
       - name: Latest tags meta
