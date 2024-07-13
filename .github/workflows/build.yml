@@ -80,7 +80,7 @@ jobs:
 
   latest:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     needs: node_matrix
     steps:
       - name: Get branch names.
