@@ -48,17 +48,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Confirming that image will be pushed.
-        if: ${{ github.ref == 'refs/heads/main' && (steps.artifact-exists.outputs.exists == 'false' || github.event_name == 'workflow_dispatch') }}
+        id: push-image
+        if: ${{ (github.ref == 'refs/heads/main' && steps.artifact-exists.outputs.exists == 'false') || github.event_name == 'workflow_dispatch' }}
         run: |
           echo "Pushing image."
           echo "Artifact already exists: ${{ steps.artifact-exists.outputs.exists }}"
           echo "Fired by workflow: ${{ github.event_name == 'workflow_dispatch' }}"
+          echo "push=true" >> "$GITHUB_OUTPUT"
 
       - name: Build and push all docker images.
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' && (steps.artifact-exists.outputs.exists == 'false' || github.event_name == 'workflow_dispatch') }}
+          push: ${{ steps.push-image.outputs.push == 'true' }}
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
