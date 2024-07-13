@@ -21,12 +21,8 @@ jobs:
           MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
-          echo "tag=$MATRIX_VERSION"
-          echo "tag=$MATRIX_VERSION" >> "$GITHUB_OUTPUT"
           echo "isLatest=$IS_LATEST"
           echo "isLatest=$IS_LATEST" >> "$GITHUB_OUTPUT"
-          echo "tarfile=/tmp/$MATRIX_VERSION.tar"
-          echo "tarfile=/tmp/$MATRIX_VERSION.tar" >> "$GITHUB_OUTPUT"
 
       - uses: LIT-Protocol/artifact-exists-action@v0
         id: artifact-exists
@@ -89,71 +85,3 @@ jobs:
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
           tags: ${{ steps.image-meta.outputs.tags }}
-
-      # - name: Upload OCI multi-platform image
-      #   if: ${{ (github.ref == 'refs/heads/main' && steps.matrix-image.outputs.isLatest == 'true') || github.event_name == 'workflow_dispatch' }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: node_patched_npm_${{ steps.matrix-image.outputs.tag }}
-      #     path: ${{ steps.matrix-image.outputs.tarfile }}
-
-  latest:
-    runs-on: ubuntu-latest
-    if: true == false && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
-    needs: node_matrix
-    steps:
-      - name: Get branch names.
-        id: branch-names
-        uses: tj-actions/branch-names@v8
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-            
-      - name: Download OCI multi-platform artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: node_patched_npm_${{ env.LATEST_TAG }}
-          path: /tmp/node_patched_npm
-
-      - name: Debug - output the contents of the downloaded artifact
-        run: ls -laR /tmp/node_patched_npm
-
-      - name: Load tagged OCI multi-platform image.
-        id: load-oci
-        run: |
-          docker import /tmp/node_patched_npm/${{ env.LATEST_TAG }}.tar ${{ env.LATEST_IMAGE_TAG }}
-
-      - name: Tag the latest image with all the variants we want
-        run: |
-          BASECMD="docker tag ${{ env.LATEST_IMAGE_TAG }}"
-          IMAGE="ghcr.io/tjsr/node_patched_npm"
-          $BASECMD $IMAGE
-          $BASECMD $IMAGE:latest
-          $BASECMD $IMAGE:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-          $BASECMD $IMAGE:latest-alpine-latest-npm${{ env.NPM_VERSION }}
-          $BASECMD $IMAGE:latest-npm${{ env.NPM_VERSION }}
-          $BASECMD $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
-          $BASECMD $IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm-latest
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}-latest
-          $BASECMD $IMAGE:${{ env.NODE_VERSION }}
-
-      - name: Push tagged images
-        run:
-          docker push --all-tags ghcr.io/tjsr/node_patched_npm
-
