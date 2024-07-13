@@ -68,13 +68,13 @@ jobs:
           images: |
             ghcr.io/tjsr/node_patched_npm
           tags: |
-            type=raw,value=${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+            type=raw,value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
             type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine-${{ env.ALPINE_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine-${{ matrix.alpine_version }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ matrix.node_version }}-npm${{ matrix.npm_version }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}
             type=sha
             type=sha,format=long
 
