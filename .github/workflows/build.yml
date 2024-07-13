@@ -11,17 +11,22 @@ jobs:
   node_matrix:
     strategy:
       matrix:
-        node_version: ['18.20.4', '20.15.1', '22.4.1']
-        alpine_version: ['3.20']
-        npm_version: ['10.8.2']
+        node:
+          - version: '18.20.4'
+          - version: '20.15.1'
+          - version: '22.4.1'
+        alpine:
+          - version: '3.20'
+        npm:
+          - version: '10.8.2'
     runs-on: ubuntu-latest
     steps:
       - id: matrix-image
         env:
-          MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
-          IS_LATEST_NODE: "${{ matrix.node_version == env.NODE_VERSION }}"
-          IS_LATEST_NPM: "${{ matrix.npm_version == env.NPM_VERSION }}"
-          IS_LATEST_ALPINE: "${{ matrix.alpine_version == env.ALPINE_VERSION }}"
+          MATRIX_VERSION: "${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}-npm${{ matrix.npm.version }}"
+          IS_LATEST_NODE: "${{ matrix.node.version == env.NODE_VERSION }}"
+          IS_LATEST_NPM: "${{ matrix.npm.version == env.NPM_VERSION }}"
+          IS_LATEST_ALPINE: "${{ matrix.alpine.version == env.ALPINE_VERSION }}"
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
           TMP_FILE=/tmp/values.${GITHUB_RUN_ID}.txt
@@ -68,13 +73,13 @@ jobs:
           images: |
             ghcr.io/tjsr/node_patched_npm
           tags: |
-            type=raw,value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
+            type=raw,value=${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}-npm${{ matrix.npm.version }}
             type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=latest
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=npm${{ matrix.npm_version }}
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=alpine-${{ matrix.alpine_version }}
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=${{ matrix.node_version }}-npm${{ matrix.npm_version }}
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=alpine${{ matrix.alpine.version }}-npm${{ matrix.npm.version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=npm${{ matrix.npm.version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=alpine-${{ matrix.alpine.version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=${{ matrix.node.version }}-npm${{ matrix.npm.version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}
             type=sha
             type=sha,format=long
 
@@ -85,7 +90,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            NODE_VERSION=${{ matrix.node_version }}
-            ALPINE_VERSION=${{ matrix.alpine_version }}
-            NPM_VERSION=${{ matrix.npm_version }}
+            NODE_VERSION=${{ matrix.node.version }}
+            ALPINE_VERSION=${{ matrix.alpine.version }}
+            NPM_VERSION=${{ matrix.npm.version }}
           tags: ${{ steps.image-meta.outputs.tags }}
