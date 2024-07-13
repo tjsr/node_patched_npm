@@ -67,18 +67,11 @@ jobs:
           tags: |
             type=raw,value=${{ steps.matrix-image.outputs.tag }}
             type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine-latest-npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine-${{ env.ALPINE_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=npm${{ env.NPM_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine-${{ env.ALPINE_VERSION }}
             type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
             type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine-latest-npm-latest
-            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-latest  
             type=sha
             type=sha,format=long
 
