@@ -65,7 +65,7 @@ jobs:
           images: |
             ghcr.io/tjsr/node_patched_npm
           tags: |
-            type=raw,value=${{ steps.matrix-image.outputs.tag }}
+            type=raw,value=${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
             type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest
             type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
             type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=npm${{ env.NPM_VERSION }}
