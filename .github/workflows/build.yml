@@ -21,14 +21,17 @@ jobs:
           MATRIX_VERSION: "${{ matrix.node_version }}-alpine${{ matrix.alpine_version }}-npm${{ matrix.npm_version }}"
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
-          echo "tag=${{ env.MATRIX_VERSION }}" >> "$GITHUB_OUTPUT"
+          echo "tag=$MATRIX_VERSION"
+          echo "tag=$MATRIX_VERSION" >> "$GITHUB_OUTPUT"
+          echo "isLatest=$IS_LATEST"
           echo "isLatest=$IS_LATEST" >> "$GITHUB_OUTPUT"
-          echo "tarfile=/tmp/${{ env.MATRIX_VERSION }}.tar" >> "$GITHUB_OUTPUT"
+          echo "tarfile=/tmp/$MATRIX_VERSION.tar"
+          echo "tarfile=/tmp/$MATRIX_VERSION.tar" >> "$GITHUB_OUTPUT"
 
       - uses: LIT-Protocol/artifact-exists-action@v0
         id: artifact-exists
         with:
-          name: "node_patched_npm_${{ env.LATEST_TAG }}"
+          name: "node_patched_npm_${{ env.MATRIX_VERSION }}"
 
       - uses: actions/checkout@v4
 
