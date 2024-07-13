@@ -58,39 +58,41 @@ jobs:
           echo "Fired by workflow: ${{ github.event_name == 'workflow_dispatch' }}"
           echo "push=true" >> "$GITHUB_OUTPUT"
 
-      - name: Build list of latest tags
-        if: steps.matrix-image.outputs.isLatest == 'true'
-        id: latest-tags
-        run: |
-          IMAGE="ghcr.io/tjsr/node_patched_npm"
-          echo "tags=$IMAGE:latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:latest-alpine-latest-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:latest-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:latest-alpine-${{ env.ALPINE_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-alpine-latest-npm-latest" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}-latest" >> "$GITHUB_OUTPUT"
-          echo "tags=$IMAGE:${{ env.NODE_VERSION }}" >> "$GITHUB_OUTPUT"
+      - name: Latest tags meta
+        id: image-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/tjsr/node_patched_npm
+          tags: |
+            type=raw,value=${{ steps.matrix-image.outputs.tag }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine${{ env.ALPINE_VERSION }}-npm${{ env.NPM_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine-latest-npm${{ env.NPM_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-npm${{ env.NPM_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine-${{ env.ALPINE_VERSION }}-npm-latest
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=latest-alpine-${{ env.ALPINE_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine-latest-npm${{ env.NPM_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}-latest
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-npm${{ env.NPM_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}-npm-latest
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine${{ env.ALPINE_VERSION }}
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-alpine-latest-npm-latest
+            type=raw,enable=${{ steps.matrix-image.outputs.isLatest == 'true' }},value=${{ env.NODE_VERSION }}-latest  
+            type=sha
+            type=sha,format=long
 
       - name: Build and push all docker images.
         uses: docker/build-push-action@v6
         with:
           context: .
-          # push: ${{ steps.push-image.outputs.push == 'true' }}
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node_version }}
             ALPINE_VERSION=${{ matrix.alpine_version }}
             NPM_VERSION=${{ matrix.npm_version }}
-          tags: |
-            ghcr.io/tjsr/node_patched_npm:${{ steps.matrix-image.outputs.tag }}
-            ${{ steps.latest-tags.outputs.tags }}
+          tags: ${{ steps.image-meta.outputs.tags }}
 
       # - name: Upload OCI multi-platform image
       #   if: ${{ (github.ref == 'refs/heads/main' && steps.matrix-image.outputs.isLatest == 'true') || github.event_name == 'workflow_dispatch' }}
