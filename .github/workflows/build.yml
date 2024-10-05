@@ -2,11 +2,11 @@ name: Release
 run-name: ${{ github.actor }} Building and pushing node_patched_npm
 on: [push, workflow_dispatch]
 env:
-  NODE_VERSION: '20.15.1'
+  NODE_VERSION: '20.18.0'
   ALPINE_VERSION: '3.20'
-  NPM_VERSION: '10.8.2'
-  LATEST_TAG: '20.15.1-alpine3.20-npm10.8.2'
-  LATEST_IMAGE_TAG: 'node_patched_npm:20.15.1-alpine3.20-npm10.8.2'
+  NPM_VERSION: '10.9.0'
+  LATEST_TAG: '20.18.0-alpine3.20-npm10.9.0'
+  LATEST_IMAGE_TAG: 'node_patched_npm:20.18.0-alpine3.20-npm10.9.0'
 jobs:
   node_matrix:
     strategy:
@@ -14,11 +14,13 @@ jobs:
         node:
           - version: '18.20.4'
           - version: '20.15.1'
+          - version: '20.18.0'
           - version: '22.4.1'
         alpine:
           - version: '3.20'
         npm:
           - version: '10.8.2'
+          - version: '10.9.0'
     runs-on: ubuntu-latest
     steps:
       - id: matrix-image
@@ -59,7 +61,7 @@ jobs:
 
       - name: Confirming that image will be pushed.
         id: push-image
-        if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || vars.PUSH_BRANCH == steps.branch-names.outputs.current_branch }}
+        if: ${{ github.ref == 'refs/head/main' || github.event_name == 'workflow_dispatch' || vars.PUSH_BRANCH == steps.branch-names.outputs.current_branch }}
         run: |
           echo "Pushing image."
           echo "Fired by workflow: ${{ github.event_name == 'workflow_dispatch' }}"
