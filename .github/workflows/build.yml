@@ -51,21 +51,6 @@ jobs:
           - node: '22.5.0'
           - npm: '11.4.0'
           - npm: '11.4.1'
-          
-        #     alpine: '3.21'
-        #   - node: '22.5.0'
-        #     alpine: '3.22'
-
-        # include:
-        # - npm: '11.4.2'
-        #   - node: '18.20.2'
-        #     alpine: '3.18'
-        #   - node: '18.20.2'
-        #     alpine: '3.19'
-        #   - node: '18.20.3'
-        #     alpine: '3.19'
-        #   - node: '18.20.3'
-        #     alpine: '3.20'
 
     runs-on: ubuntu-latest
     steps:
