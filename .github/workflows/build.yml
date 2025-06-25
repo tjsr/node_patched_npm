@@ -31,8 +31,9 @@ jobs:
           # - version: '3.21'
           - version: '3.22'
         npm:
+          - version: '11.4.2'
           - version: '11.4.1'
-          # - version: '11.4.0'
+          - version: '11.4.0'
         # exclude:
         #   - alpine: '3.18'
         #   - alpine: '3.19'
