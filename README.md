@@ -7,28 +7,13 @@ This will build a matrix of node images with recent in-use node versions.
 The current matrix is:
 
 - node
-  - ~~18.20.2~~
-  - ~~18.20.3~~
-  - ~~20.12.2~~
-  - ~~20.13.1~~
-  - ~~20.14.0~~
-  - ~~20.15.1~~
-  - ~~20.18.0~~
-  - 20.18.1
-  - 22.5.0
-  - 20.12.0
+  - 22.16.0
+  - 24.2.0
 - alpine
-  - ~~3.18~~
-  - ~~3.19~~
-  - 3.20
+  - 3.21
+  - 3.22
 - npm
-  - ~~10.5.2~~
-  - ~~10.6.0~~
-  - ~~10.7.0~~
-  - ~~10.8.2~~
-  - 10.9.0
-  - 10.9.2
-  - 11.0.0
+  - 11.4.1
 
 ## Architecture
 
@@ -36,7 +21,7 @@ This image is built for both linux/amd64 and linux/arm64 (Mac/AWS Graviton)
 
 ## Usage
 
-You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:20.18.0-alpine3.20-npm10.9.0` or even just
+You may need to log in to ghcr.io to access/pull images.  Try `docker pull ghcr.io/tjsr/node_patched_npm:22.16.0-alpine3.22-npm11.4.1` or even just
 `docker pull ghcr.io/tjsr/node_patched_npm:latest`
 
 ## Smaller images
