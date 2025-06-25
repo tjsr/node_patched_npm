@@ -18,6 +18,8 @@ jobs:
           - version: '22.16.0'
           - version: '24.2.0'
         alpine:
+          - version: '3.19'
+          - version: '3.20'
           - version: '3.21'
           - version: '3.22'
         npm:
@@ -25,9 +27,13 @@ jobs:
           - version: '11.4.0'
         exclude:
           - node: '24.2.0'
-            alpine: '3.21'
-          - node: '20.19.3'
+            alpine: ['3.20', '3.19']
+          - node: '22.16.0'
+            alpine: ['3.19']
+          - node: ['20.19.3', '20.19.1']
             alpine: '3.22'
+          - node: '22.5.0'
+            alpine: ['3.21', '3.22']
 
     runs-on: ubuntu-latest
     steps:
