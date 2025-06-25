@@ -13,6 +13,7 @@ jobs:
       matrix:
         node:
           - version: '22.16.0'
+          - version: '24.2.0'
         alpine:
           - version: '3.21'
           - version: '3.22'
