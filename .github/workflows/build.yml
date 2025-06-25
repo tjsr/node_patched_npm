@@ -31,9 +31,9 @@ jobs:
           # - version: '3.21'
           - version: '3.22'
         npm:
-          - version: '11.4.2'
-          - version: '11.4.1'
-          - version: '11.4.0'
+          - '11.4.2'
+          - '11.4.1'
+          - '11.4.0'
         # exclude:
         #   - alpine: '3.18'
         #   - alpine: '3.19'
@@ -68,9 +68,9 @@ jobs:
     steps:
       - id: matrix-image
         env:
-          MATRIX_VERSION: "${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}-npm${{ matrix.npm.version }}"
+          MATRIX_VERSION: "${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}-npm${{ matrix.npm }}"
           IS_LATEST_NODE: "${{ matrix.node.version == env.NODE_VERSION }}"
-          IS_LATEST_NPM: "${{ matrix.npm.version == env.NPM_VERSION }}"
+          IS_LATEST_NPM: "${{ matrix.npm == env.NPM_VERSION }}"
           IS_LATEST_ALPINE: "${{ matrix.alpine.version == env.ALPINE_VERSION }}"
         run: |
           IS_LATEST=$([[ "$LATEST_TAG" == "$MATRIX_VERSION" ]] && echo true || echo false)
@@ -118,12 +118,12 @@ jobs:
           images: |
             ghcr.io/tjsr/node_patched_npm
           tags: |
-            type=raw,value=${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}-npm${{ matrix.npm.version }}
+            type=raw,value=${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}-npm${{ matrix.npm }}
             type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=latest
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=alpine${{ matrix.alpine.version }}-npm${{ matrix.npm.version }}
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=npm${{ matrix.npm.version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' }},value=alpine${{ matrix.alpine.version }}-npm${{ matrix.npm }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=npm${{ matrix.npm }}
             type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=alpine-${{ matrix.alpine.version }}
-            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=${{ matrix.node.version }}-npm${{ matrix.npm.version }}
+            type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=${{ matrix.node.version }}-npm${{ matrix.npm }}
             type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=${{ matrix.node.version }}-alpine${{ matrix.alpine.version }}
             type=sha
             type=sha,format=long
@@ -137,5 +137,5 @@ jobs:
           build-args: |
             NODE_VERSION=${{ matrix.node.version }}
             ALPINE_VERSION=${{ matrix.alpine.version }}
-            NPM_VERSION=${{ matrix.npm.version }}
+            NPM_VERSION=${{ matrix.npm }}
           tags: ${{ steps.image-meta.outputs.tags }}
