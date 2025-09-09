@@ -7,13 +7,13 @@ This will build a matrix of node images with recent in-use node versions.
 The current matrix is:
 
 - node
-  - 22.16.0
-  - 24.2.0
+  - 22.19.0
+  - 24.7.0
 - alpine
   - 3.21
   - 3.22
 - npm
-  - 11.4.1
+  - 11.6.0
 
 ## Architecture
 

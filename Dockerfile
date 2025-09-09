@@ -1,9 +1,9 @@
-ARG NODE_VERSION=22.16.0
+ARG NODE_VERSION=22.19.0
 ARG ALPINE_VERSION=3.22
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS node_patched_npm
-ARG NODE_VERSION=22.16.0
+ARG NODE_VERSION=22.19.0
 ARG ALPINE_VERSION=3.22
-ARG NPM_VERSION=11.4.1
+ARG NPM_VERSION=11.6.0
 LABEL org.opencontainers.image.description="node_patched_npm is a Node.js image with most up-to-date npm versions globally installed and some global notifications settings disabled."
 LABEL org.opencontainers.image.authors="Tim Rowe <tim@tjsr.id.au>"
 LABEL org.opencontainers.image.source="https://github.com/tjsr/node_patched_npm.git"
