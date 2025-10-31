@@ -46,7 +46,6 @@ jobs:
           - alpine: '3.18'
           - alpine: '3.19'
           - alpine: '3.20'
-          - alpine: '3.21'
           - node: '18.20.2'
           - node: '18.20.3'
           - node: '20.19.1'
