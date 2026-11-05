@@ -37,6 +37,16 @@ jobs:
           - node: '26.13.0'
             alpine: '3.24'
             npm: '11.6.2'
+          # Downstream application builders that retain a pinned toolchain.
+          - node: '24.19.0'
+            alpine: '3.22'
+            npm: '11.4.0'
+          - node: '20.18.1'
+            alpine: '3.20'
+            npm: '11.0.0'
+          - node: '20.12.2'
+            alpine: '3.19'
+            npm: '10.5.2'
         exclude:
           - alpine: '3.18'
           - alpine: '3.19'
