@@ -1,6 +1,6 @@
 name: Release
 run-name: ${{ github.actor }} Building and pushing node_patched_npm
-on: [push, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 env:
   NODE_VERSION: '24.11.0'
   ALPINE_VERSION: '3.22'
@@ -10,17 +10,9 @@ env:
 jobs:
   node_matrix:
     strategy:
+      fail-fast: false
       matrix:
         node:
-          - '18.20.2'
-          - '18.20.3'
-          - '20.12.2'
-          - '20.13.1'
-          - '20.14.0'
-          - '20.15.1'
-          - '20.18.1'
-          - '20.19.1'
-          - '20.19.3'
           - '22.5.0'
           - '22.16.0'
           - '22.18.0'
@@ -36,26 +28,29 @@ jobs:
           - '3.22'
         npm:
           - '11.4.2'
-          - '11.4.1'
           - '11.4.0'
           - '11.4.1'
           - '11.6.0'
           - '11.6.1'
           - '11.6.2'
+        include:
+          - node: '26.13.0'
+            alpine: '3.24'
+            npm: '11.6.2'
+          # Downstream application builders that retain a pinned toolchain.
+          - node: '24.19.0'
+            alpine: '3.23'
+            npm: '11.4.0'
+          - node: '20.18.1'
+            alpine: '3.20'
+            npm: '11.0.0'
+          - node: '20.12.2'
+            alpine: '3.19'
+            npm: '10.5.2'
         exclude:
           - alpine: '3.18'
           - alpine: '3.19'
           - alpine: '3.20'
-          - node: '18.20.2'
-          - node: '18.20.3'
-          - node: '20.19.1'
-          - node: '20.12.2'
-          - node: '20.13.1'
-          - node: '20.14.0'
-          - node: '20.15.1'
-          - node: '20.18.1'
-          - node: '20.19.1'
-          - node: '20.19.3'
           - node: '22.5.0'
           - node: '22.16.0'
           - node: '22.18.0'
@@ -96,21 +91,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Confirming that image will be pushed.
         id: push-image
-        if: ${{ github.ref == 'refs/head/main' || github.event_name == 'workflow_dispatch' || vars.PUSH_BRANCH == steps.branch-names.outputs.current_branch }}
+        if: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || (vars.PUSH_BRANCH != '' && vars.PUSH_BRANCH == steps.branch-names.outputs.current_branch)) }}
         run: |
           echo "Pushing image."
           echo "Fired by workflow: ${{ github.event_name == 'workflow_dispatch' }}"
           echo "isPushBranch=${{ vars.PUSH_BRANCH == steps.branch-names.outputs.current_branch }}" >> "$GITHUB_OUTPUT"
           echo "push=true" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        if: ${{ steps.push-image.outputs.push == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Latest tags meta
         id: image-meta
@@ -126,14 +122,14 @@ jobs:
             type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNode == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=alpine-${{ matrix.alpine }}
             type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestAlpine == 'true' }},value=${{ matrix.node }}-npm${{ matrix.npm }}
             type=raw,enable=${{ steps.push-image.outputs.push == 'true' && steps.matrix-image.outputs.isLatestNpm == 'true' }},value=${{ matrix.node }}-alpine${{ matrix.alpine }}
-            type=sha
-            type=sha,format=long
+            type=sha,enable=${{ matrix.node == env.NODE_VERSION && matrix.alpine == env.ALPINE_VERSION && matrix.npm == env.NPM_VERSION }}
+            type=sha,format=long,enable=${{ matrix.node == env.NODE_VERSION && matrix.alpine == env.ALPINE_VERSION && matrix.npm == env.NPM_VERSION }}
 
       - name: Build and push all docker images.
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: ${{ steps.push-image.outputs.push == 'true' }}
           platforms: linux/amd64,linux/arm64
           build-args: |
             NODE_VERSION=${{ matrix.node }}
